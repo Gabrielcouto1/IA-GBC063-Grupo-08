@@ -1,12 +1,13 @@
 class Vertice:
 
-    def __init__(self, id):
+    def __init__(self, id, nome):
         self.id = id
+        self.nome = nome
         self.vizinhos = []
 
-    def add_vizinho(self, vizinho):
+    def add_vizinho(self, vizinho, peso):
         if vizinho not in self.vizinhos:
-            self.vizinhos.append(vizinho)
+            self.vizinhos.append((vizinho, peso))
 
 
 class Grafo:
@@ -23,16 +24,19 @@ class Grafo:
             return True
         return False
     
-    def add_aresta(self, v1, v2):
-        if v1 not in self.vertices or v2 not in self.vertices:
+    def add_aresta(self, v1, v2, peso):
+        for vertice in self:
+            if vertice.nome == v1:
+                v1_index = vertice.id
+            if vertice.nome == v2:
+                v2_index = vertice.id
+        
+        if v1_index not in self.vertices or v2_index not in self.vertices and peso <= 0:
             return False
         
-        self.vertices[v1].add_vizinho(v2)
-        self.vertices[v2].add_vizinho(v1)
+        self.vertices[v1_index].add_vizinho(v2_index, peso)
+        self.vertices[v2_index].add_vizinho(v1_index, peso)
         return True
-    
-    def get_vertices(self):
-        return self.vertices.keys()
     
     def print_grafo(self):
         for vertice in self:
@@ -40,17 +44,18 @@ class Grafo:
             print(f"Vertice {vertice.id}: Vizinhos -> {vizinhos}")
 
     def get_matriz_adjacencia(self):
-        for i in range(len(self.vertices)): # printa o cabecalho 
-            print(f"\t{i}", end="")
-        print("\n") 
+        ids = list(self.vertices.keys())
+        ids.sort()  
 
-        for vertice in self: 
-            print(vertice.id, end="") # printa o id do vertice na esquerda
-            
-            for j in range(len(self.vertices)): # printa se tem adjacencia ou nao
-                if j in vertice.vizinhos:
-                    print("\t1", end="")
-                else:
-                    print("\t0", end="")
-            print()
-        
+        print("\t" + "\t".join(self.vertices[i].nome for i in ids))
+
+        for i in ids:
+            linha = [self.vertices[i].nome]  
+            for j in ids:
+                peso = 0
+                for vizinho, p in self.vertices[i].vizinhos:
+                    if vizinho == j:
+                        peso = p
+                        break
+                linha.append(str(peso))
+            print("\t".join(linha))
