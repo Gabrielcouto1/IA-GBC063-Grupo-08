@@ -1,61 +1,77 @@
-class Vertice:
-
-    def __init__(self, id, nome):
-        self.id = id
-        self.nome = nome
-        self.vizinhos = []
-
-    def add_vizinho(self, vizinho, peso):
-        if vizinho not in self.vizinhos:
-            self.vizinhos.append((vizinho, peso))
-
+from collections import deque
 
 class Grafo:
 
-    def __init__(self):
+    def __init__(self, num_vertices):
+        self.num_vertices = num_vertices
+        self.matriz_adjacencia = [[0] * num_vertices for i in range(num_vertices)]
         self.vertices = {}
 
-    def __iter__(self):
-        return iter(self.vertices.values())
-    
-    def add_vertice(self, vertice):
-        if isinstance(vertice, Vertice) and vertice.id not in self.vertices:
-            self.vertices[vertice.id] = vertice
+    def add_vertice(self, id, nome):
+        if id not in self.vertices:
+            self.vertices[id] = nome
             return True
         return False
-    
-    def add_aresta(self, v1, v2, peso):
-        for vertice in self:
-            if vertice.nome == v1:
-                v1_index = vertice.id
-            if vertice.nome == v2:
-                v2_index = vertice.id
+
+    def add_aresta(self, v1_nome, v2_nome, peso):
+        v1_index = v2_index = None
+
+        for id, nome in self.vertices.items():
+            if nome == v1_nome:
+                v1_index = id
+            if nome == v2_nome:
+                v2_index = id
         
-        if v1_index not in self.vertices or v2_index not in self.vertices and peso <= 0:
+        if v1_index is None or v2_index is None or peso <= 0:
             return False
-        
-        self.vertices[v1_index].add_vizinho(v2_index, peso)
-        self.vertices[v2_index].add_vizinho(v1_index, peso)
+
+        self.matriz_adjacencia[v1_index][v2_index] = peso
+        self.matriz_adjacencia[v2_index][v1_index] = peso
         return True
-    
+
     def print_grafo(self):
-        for vertice in self:
-            vizinhos = ', '.join(str(v) for v in vertice.vizinhos)
-            print(f"Vertice {vertice.id}: Vizinhos -> {vizinhos}")
+        for i, nome in self.vertices.items():
+            vizinhos = [(j, self.matriz_adjacencia[i][j]) for j in range(self.num_vertices) if self.matriz_adjacencia[i][j] > 0]
+            vizinhos_str = ', '.join(f"({j}, {p})" for j, p in vizinhos)
+            print(f"Vertice {i}: Vizinhos -> {vizinhos_str}")
 
     def get_matriz_adjacencia(self):
         ids = list(self.vertices.keys())
-        ids.sort()  
+        ids.sort()
 
-        print("\t" + "\t".join(self.vertices[i].nome for i in ids))
+        print("\t" + "\t".join(self.vertices[i] for i in ids))
 
         for i in ids:
-            linha = [self.vertices[i].nome]  
+            linha = [self.vertices[i]]
             for j in ids:
-                peso = 0
-                for vizinho, p in self.vertices[i].vizinhos:
-                    if vizinho == j:
-                        peso = p
-                        break
-                linha.append(str(peso))
+                linha.append(str(self.matriz_adjacencia[i][j]))
             print("\t".join(linha))
+
+    def bfs(self, start_nome):
+        start_index = None
+
+        for id, nome in self.vertices.items():
+            if nome == start_nome:
+                start_index = id
+                break
+
+        if start_index is None:
+            print("Vértice inicial não encontrado!")
+            return
+
+        visitados = [False] * self.num_vertices
+        fila = deque([start_index])
+        visitados[start_index] = True
+
+        ordem_visita = []
+
+        while fila:
+            vertice_atual = fila.popleft()
+            ordem_visita.append(self.vertices[vertice_atual])
+
+            for i in range(self.num_vertices):
+                if self.matriz_adjacencia[vertice_atual][i] > 0 and not visitados[i]:
+                    fila.append(i)
+                    visitados[i] = True
+
+        print("Ordem de visita BFS:", " -> ".join(ordem_visita))
