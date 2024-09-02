@@ -8,6 +8,11 @@ class Grafo:
         self.vertices = {}
 
     def add_vertice(self, id, nome):
+        
+        if nome in self.vertices.values():
+            print(f"Erro: O vértice com nome '{nome}' já existe!")
+            return False
+        
         if id not in self.vertices:
             self.vertices[id] = nome
             return True
@@ -28,13 +33,7 @@ class Grafo:
         self.matriz_adjacencia[v1_index][v2_index] = peso
         self.matriz_adjacencia[v2_index][v1_index] = peso
         return True
-
-    def print_grafo(self):
-        for i, nome in self.vertices.items():
-            vizinhos = [(j, self.matriz_adjacencia[i][j]) for j in range(self.num_vertices) if self.matriz_adjacencia[i][j] > 0]
-            vizinhos_str = ', '.join(f"({j}, {p})" for j, p in vizinhos)
-            print(f"Vertice {i}: Vizinhos -> {vizinhos_str}")
-
+    
     def get_matriz_adjacencia(self):
         ids = list(self.vertices.keys())
         ids.sort()
@@ -46,10 +45,13 @@ class Grafo:
             for j in ids:
                 linha.append(str(self.matriz_adjacencia[i][j]))
             print("\t".join(linha))
+            
+        print()
+        
 
     def bfs(self, start_nome):
         start_index = None
-
+    
         for id, nome in self.vertices.items():
             if nome == start_nome:
                 start_index = id
